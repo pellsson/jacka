@@ -140,8 +140,6 @@ static bool west_is_on = false;
 
 static void west_on(void)
 {
-	Serial.println("ON");
-
 	if(!west_is_on)
 	{
 		Serial.println("West OFF => ON");
@@ -154,8 +152,6 @@ static void west_on(void)
 
 static void west_off(void)
 {
-	Serial.println("OFF");
-
 	if(west_is_on)
 	{
 		Serial.println("West ON => OFF");
@@ -184,7 +180,6 @@ static void radio_up(void)
 	radio.openReadingPipe(0, address);
 	
 	Serial.println("Initializaing chip...!");
-
 
 	for(;;)
 	{
@@ -266,8 +261,7 @@ static void handle_sequences(jack_pack_t *buf)
 	{
 		seq = &beer_random;
 	}
-
-	if(!seq)
+	else
 	{
 		return;
 	}
@@ -288,10 +282,6 @@ static void handle_sequences(jack_pack_t *buf)
 
 			if(millis() > sequence_advance)
 			{
-				Serial.print(buf->activate, HEX);
-				Serial.print(", ");
-				Serial.println(buf->deactivate, HEX);
-
 				if(++sequence_step >= seq->num_activations)
 				{
 					sequence_step = 0;
@@ -300,8 +290,6 @@ static void handle_sequences(jack_pack_t *buf)
 				}
 
 				sequence_advance = millis() + sequence_delay;
-				Serial.print("Next step in ms: ");
-				Serial.println(sequence_delay);
 			}
 		}
 	}
@@ -411,6 +399,8 @@ void loop()
 			if(read_button(shift_button))
 			{
 				handle_sequences(&buf);
+				Serial.print("KUKEN ER: ");
+				Serial.println(buf.activate, HEX);
 			}
 			else
 			{
