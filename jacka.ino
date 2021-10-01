@@ -92,6 +92,8 @@ static void radio_up(void)
 			break;
 		}
 	}
+
+	Serial.println("Chip connection established!");
 }
 
 static void enter_master(void)
