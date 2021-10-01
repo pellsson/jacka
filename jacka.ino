@@ -79,6 +79,7 @@ static const sequence_t single_person_wave =
 		light_one(0),
 		light_one(1),
 		light_one(2),
+		light_one(3),
 	}
 };
 
@@ -89,6 +90,7 @@ static const sequence_t beer_random =
 		light_one(0),
 		light_one(1),
 		light_one(2),
+		light_one(3),
 	}
 };
 
@@ -343,11 +345,6 @@ static void dispatch_packet(const jack_pack_t *p)
 		return;
 	}
 
-	Serial.print("My penis: ");
-	Serial.print(device_id);
-	Serial.print(" REG: ");
-	Serial.println(p->activate, HEX);
-
 	if(p->activate & (1 << device_id))
 	{
 		west_on();
@@ -404,8 +401,6 @@ void loop()
 			if(read_button(shift_button))
 			{
 				handle_sequences(&buf);
-				Serial.print("KUKEN ER: ");
-				Serial.println(buf.activate, HEX);
 			}
 			else
 			{
