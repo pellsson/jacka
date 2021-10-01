@@ -165,7 +165,7 @@ static void dispatch_packet(const jack_pack_t *p)
 		Serial.println("Bad CRC! Ignoring packet :(");
 		Serial.print(p->master);
 		Serial.print(p->activate);
-		Serial.print(p->deactivate);
+		Serial.println(p->deactivate);
 		return;
 	}
 
