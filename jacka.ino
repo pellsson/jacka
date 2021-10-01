@@ -140,6 +140,8 @@ static bool west_is_on = false;
 
 static void west_on(void)
 {
+	Serial.println("ON");
+
 	if(!west_is_on)
 	{
 		Serial.println("West OFF => ON");
@@ -152,6 +154,8 @@ static void west_on(void)
 
 static void west_off(void)
 {
+	Serial.println("OFF");
+
 	if(west_is_on)
 	{
 		Serial.println("West ON => OFF");
