@@ -7,13 +7,13 @@ static RF24 radio(7, 8); // CE, CSN
 static unsigned long MANUAL_TIMEOUT = 10000;
 static unsigned long DDOS_INTERVAL = 5;
 
-static const int button_0 = A2;
-static const int button_1 = A1;
+static const int button_0 = A1;
+static const int button_1 = A2;
 static const int button_2 = A3;
 static const int button_3 = A4;
 
-static const int led_r = 3;
-static const int led_g = 5;
+static const int led_g = 3;
+static const int led_r = 5;
 static const int led_b = 6;
 
 static const int led_jacket = A5;
@@ -66,13 +66,21 @@ static void set_rgb(int r, int g, int b)
 
 static void west_on(void)
 {
-	set_rgb(0, 255, 0);
+	set_rgb(255, 0, 0);
 	digitalWrite(led_jacket, HIGH);
 }
 
 static void west_off(void)
 {
-	set_rgb(255, 0, 0);
+	if(slave)
+	{
+		set_rgb(0, 255, 0);
+	}
+	else
+	{
+		set_rgb(0, 0, 255);
+	}
+
 	digitalWrite(led_jacket, LOW);
 }
 
@@ -101,16 +109,16 @@ static void radio_up(void)
 
 static void enter_master(void)
 {
-	set_rgb(255, 255, 255);
 	radio.stopListening();
 	slave = false;
+	west_off();
 }
 
 static void enter_slave(void)
 {
-	set_rgb(255, 0, 255);
+	set_rgb(0, 255, 0);
 	radio.startListening();
-	slave = true;
+	west_off();
 }
 
 static bool read_button(int pin)
@@ -155,6 +163,9 @@ static void dispatch_packet(const jack_pack_t *p)
 	if(p->crc8 != compute_crc8((const uint8_t *)p, sizeof(jack_pack_t) - 1))
 	{
 		Serial.println("Bad CRC! Ignoring packet :(");
+		Serial.print(p->master);
+		Serial.print(p->activate);
+		Serial.print(p->deactivate);
 		return;
 	}
 
