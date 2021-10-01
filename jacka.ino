@@ -21,6 +21,10 @@ static const byte address[6] = "00001";
 
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
+
+static int sequence_step = 0;
+static unsigned long sequence_advance = 0;
+
 static bool slave = true;
 static bool master_button = false;
 
@@ -36,6 +40,26 @@ typedef struct jack_pack
 }
 jack_pack_t;
 #pragma pack(pop)
+
+#define count_of(x) (sizeof(x) / sizeof(x[0]))
+
+#define light_one(n) { (1 << n), ~(1 << n) }
+
+typedef struct sequence
+{
+	uint8_t activate;
+	uint8_t deactivate;
+}
+sequence_t;
+
+static const sequence_t loop_single[] =
+{
+	light_one(0),
+	light_one(1),
+	light_one(2),
+	//light_one(3),
+	// light_one(5),
+};
 
 uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 {
@@ -246,15 +270,45 @@ void loop()
 
 			buf.master = (1 << device_id);
 
-			if(read_button(button_1))
+			if(read_button(button_2))
 			{
-				buf.activate = 0xFF;
-				buf.deactivate = 0x00;
+				if(0 == sequence_advance)
+				{
+					sequence_step = 0;
+					sequence_advance = millis() + 50;
+				}
+				else
+				{
+					buf.activate = loop_single[sequence_step].activate;
+					buf.deactivate = loop_single[sequence_step].deactivate;
+
+					if(millis() > sequence_advance)
+					{
+						if(++sequence_step >= count_of(loop_single))
+						{
+							sequence_step = 0;
+						}
+						sequence_advance = millis() + 50;
+					}
+				}
 			}
 			else
 			{
-				buf.activate = 0x00;
-				buf.deactivate = 0xFF;
+				if(sequence_advance)
+				{
+					delay(10);
+					sequence_advance = 0;
+				}
+				if(read_button(button_1))
+				{
+					buf.activate = 0xFF;
+					buf.deactivate = 0x00;
+				}
+				else
+				{
+					buf.activate = 0x00;
+					buf.deactivate = 0xFF;
+				}
 			}
 
 			buf.crc8 = compute_crc8((const uint8_t *)&buf, sizeof(buf) - 1);
