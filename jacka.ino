@@ -256,6 +256,7 @@ static void handle_sequences(jack_pack_t *buf)
 
 	if(0 == sequence_advance)
 	{
+		Serial.println("I begin seq now.");
 		sequence_step = 0;
 		sequence_iterations = 0;
 		sequence_delay = seq->step_delay;
@@ -265,6 +266,7 @@ static void handle_sequences(jack_pack_t *buf)
 	{
 		if(sequence_iterations < seq->iterations)
 		{
+			Serial.println("Next seq step.. g00g0g0g");
 			buf->activate = seq->activations[sequence_step].activate;
 			buf->deactivate = seq->activations[sequence_step].deactivate;
 
