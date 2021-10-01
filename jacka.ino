@@ -224,6 +224,7 @@ void loop()
 		{
 			Serial.println("Master button released.");
 			master_button = false;
+			delay(10);
 		}
 	}
 
