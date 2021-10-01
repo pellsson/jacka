@@ -220,8 +220,11 @@ void loop()
 	}
 	else if(!read_button(button_3))
 	{
-		Serial.println("Master button released.");
-		master_button = false;
+		if(master_button)
+		{
+			Serial.println("Master button released.");
+			master_button = false;
+		}
 	}
 
 	if(slave)
