@@ -16,7 +16,7 @@ static const int led_g = 3;
 static const int led_r = 5;
 static const int led_b = 6;
 
-static const int led_jacket = A5;
+static const int led_jacket = 10;
 static const byte address[6] = "00001";
 
 static unsigned long next_ddos_ms = 0;
