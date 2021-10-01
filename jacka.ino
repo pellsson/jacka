@@ -74,7 +74,7 @@ sequence_t;
 
 static const sequence_t single_person_wave =
 {
-	20000, 100, 0, 3,
+	20000, 100, 0, 4,
 	{
 		light_one(0),
 		light_one(1),
@@ -85,7 +85,7 @@ static const sequence_t single_person_wave =
 
 static const sequence_t beer_random = 
 {
-	20, 50, 25, 3,
+	20, 50, 25, 4,
 	{
 		light_one(0),
 		light_one(1),
