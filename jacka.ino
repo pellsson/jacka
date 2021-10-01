@@ -85,6 +85,9 @@ static void radio_up(void)
 	radio.openWritingPipe(address);
 	radio.openReadingPipe(0, address);
 	
+	Serial.println("Initializaing chip...!");
+
+
 	for(;;)
 	{
 		if(radio.isChipConnected())
@@ -132,6 +135,9 @@ void setup()
 	pinMode(button_3, INPUT_PULLUP);
 
 	Serial.begin(115200);
+
+	Serial.print("Device ID: ");
+	Serial.println(device_id);
 
 	radio_up();
 	enter_slave();
@@ -189,7 +195,6 @@ void loop()
 	{
 		if(radio.available())
 		{
-			Serial.println("I got a packet boiii");
 			radio.read(&buf, sizeof(buf));
 			dispatch_packet(&buf);
 		}
