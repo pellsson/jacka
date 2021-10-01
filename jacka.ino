@@ -343,6 +343,11 @@ static void dispatch_packet(const jack_pack_t *p)
 		return;
 	}
 
+	Serial.print("My penis: ");
+	Serial.print(device_id);
+	Serial.print(" REG: ");
+	Serial.println(p->activate, HEX);
+
 	if(p->activate & (1 << device_id))
 	{
 		west_on();
@@ -418,9 +423,9 @@ void loop()
 			}
 
 			buf.crc8 = compute_crc8((const uint8_t *)&buf, sizeof(buf) - 1);
-			radio.write(&buf, sizeof(buf));
-
 			dispatch_packet(&buf);
+
+			radio.write(&buf, sizeof(buf));
 		}
 	}
 }
