@@ -14,6 +14,8 @@ static const int button_1 = A2;
 static const int button_2 = A3;
 static const int button_3 = A4;
 
+static const int all_dance = button_1;
+static const int master_button = button_2;
 static const int shift_button = button_3;
 
 static const int led_g = 3;
@@ -266,14 +268,14 @@ static void handle_sequences(jack_pack_t *buf)
 static void handle_master_button(void)
 {
 	if(0 == master_button_down
-	&& read_button(button_2))
+	&& read_button(master_button))
 	{
 		Serial.print("Start master toggle... (3 sec)");
 		Serial.println(slave);
 		master_button_down = millis() + MASTER_BUTTON_TIMEOUT;
 	}
 
-	if(!read_button(button_2))
+	if(!read_button(master_button))
 	{
 		if(master_button_down)
 		{
@@ -282,7 +284,8 @@ static void handle_master_button(void)
 		}
 	}
 
-	if(master_button_down && millis() >= master_button_down)
+	if(master_button_down
+	&& millis() >= master_button_down)
 	{
 		Serial.println("Master button held, toggling master state...");
 		Serial.print("Previous state: ");
@@ -369,12 +372,8 @@ void loop()
 			}
 			else
 			{
-				if(sequence_advance)
-				{
-					delay(10);
-					sequence_advance = 0;
-				}
-				if(read_button(button_1))
+				sequence_advance = 0;
+				if(read_button(all_dance))
 				{
 					buf.activate = 0xFF;
 					buf.deactivate = 0x00;
