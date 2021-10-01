@@ -187,6 +187,7 @@ void loop()
 	{
 		if(radio.available())
 		{
+			Serial.println("I got a packet boiii");
 			radio.read(&buf, sizeof(buf));
 			dispatch_packet(&buf);
 		}
