@@ -1,5 +1,11 @@
-static unsigned long MANUAL_TIMEOUT 10000
-static unsigned long DDOS_INTERVAL 5
+#include <SPI.h>
+#include <RF24.h>
+#include <EEPROM.h>
+
+static RF24 radio(7, 8); // CE, CSN
+
+static unsigned long MANUAL_TIMEOUT = 10000;
+static unsigned long DDOS_INTERVAL = 5;
 
 static const int button_0 = A2;
 static const int button_1 = A1;
@@ -90,14 +96,21 @@ static void radio_up(void)
 
 static void enter_master(void)
 {
+	set_rgb(255, 255, 255);
 	radio.stopListening();
 	slave = false;
 }
 
 static void enter_slave(void)
 {
+	set_rgb(255, 0, 255);
 	radio.startListening();
 	slave = true;
+}
+
+static bool read_button(int pin)
+{
+	return (LOW == digitalRead(pin));
 }
 
 void setup()
@@ -131,9 +144,9 @@ static void dispatch_packet(const jack_pack_t *p)
 		return;
 	}
 
-	if(p->crc8 != compute_crc8(p, sizeof(jack_pack_t) - 1))
+	if(p->crc8 != compute_crc8((const uint8_t *)p, sizeof(jack_pack_t) - 1))
 	{
-		Serial.println("Bad CRC! Ignoring packet :(")
+		Serial.println("Bad CRC! Ignoring packet :(");
 		return;
 	}
 
@@ -151,7 +164,7 @@ void loop()
 {
 	jack_pack_t buf;
 
-	if(digitalRead(button_0))
+	if(read_button(button_0))
 	{
 		leave_manual_ms = millis() + MANUAL_TIMEOUT;
 		west_on();
@@ -165,7 +178,7 @@ void loop()
 		}
 	}
 
-	if(slave && digitalRead(button_3))
+	if(slave && read_button(button_3))
 	{
 		enter_master();
 	}
@@ -186,9 +199,9 @@ void loop()
 		{
 			next_ddos_ms = now + DDOS_INTERVAL;
 
-			buf.device = (1 << device_id);
+			buf.master = (1 << device_id);
 
-			if(digitalRead(button_1))
+			if(read_button(button_1))
 			{
 				buf.activate = 0xFF;
 				buf.deactivate = 0x00;
@@ -199,7 +212,7 @@ void loop()
 				buf.deactivate = 0xFF;
 			}
 
-			buf.crc8 = compuate_crc8(&buf, sizeof(buf) - 1);
+			buf.crc8 = compute_crc8((const uint8_t *)&buf, sizeof(buf) - 1);
 			radio.write(&buf, sizeof(buf));
 
 			dispatch_packet(&buf);
