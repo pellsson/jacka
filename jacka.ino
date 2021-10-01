@@ -266,7 +266,7 @@ void loop()
 		}
 	}
 
-	if(millis() >= master_button_down)
+	if(master_button_down && millis() >= master_button_down)
 	{
 		Serial.println("Master button held, toggling master state...");
 		Serial.print("Previous state: ");
