@@ -274,6 +274,7 @@ void loop()
 		Serial.println(slave);
 
 		toggle_master();
+		master_button_down = 0;
 	}
 
 	if(slave)
