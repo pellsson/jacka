@@ -216,7 +216,7 @@ void loop()
 		toggle_master();
 		master_button = true;
 	}
-	else
+	else if(!read_button(button_3))
 	{
 		master_button = false;
 	}
