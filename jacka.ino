@@ -14,6 +14,8 @@ static const int button_1 = A2;
 static const int button_2 = A3;
 static const int button_3 = A4;
 
+static const int shift_button = button_3;
+
 static const int led_g = 3;
 static const int led_r = 5;
 static const int led_b = 6;
@@ -66,6 +68,16 @@ typedef struct sequence
 	activations_t activations[64];
 }
 sequence_t;
+
+static const sequence_t single_person_wave =
+{
+	20000, 100, 0, 3,
+	{
+		light_one(0),
+		light_one(1),
+		light_one(2),
+	}
+};
 
 static const sequence_t beer_random = 
 {
@@ -205,6 +217,82 @@ void setup()
 	west_off();
 }
 
+static void handle_sequences(jack_pack_t *buf)
+{
+	const sequence_t *seq = NULL;
+
+	if(read_button(button_1))
+	{
+		seq = &single_person_wave;
+	}
+	else
+	{
+		seq = &beer_random;
+	}
+
+	if(!seq)
+	{
+		return;
+	}
+
+	if(0 == sequence_advance)
+	{
+		sequence_step = 0;
+		sequence_iterations = 0;
+		sequence_delay = seq->step_delay;
+		sequence_advance = millis() + sequence_delay;
+	}
+	else
+	{
+		if(sequence_iterations < seq->iterations)
+		{
+			buf->activate = seq->activations[sequence_step].activate;
+			buf->deactivate = seq->activations[sequence_step].deactivate;
+
+			if(millis() > sequence_advance)
+			{
+				if(++sequence_step >= seq->num_activations)
+				{
+					sequence_step = 0;
+					sequence_delay += seq->step_delay_add;
+					sequence_iterations += 1;
+				}
+				sequence_advance = millis() + sequence_delay;
+			}
+		}
+	}
+}
+
+static void handle_master_button(void)
+{
+	if(0 == master_button_down
+	&& read_button(button_2))
+	{
+		Serial.print("Start master toggle... (3 sec)");
+		Serial.println(slave);
+		master_button_down = millis() + MASTER_BUTTON_TIMEOUT;
+	}
+
+	if(!read_button(button_2))
+	{
+		if(master_button_down)
+		{
+			Serial.println("Master button released.");
+			master_button_down = 0;
+		}
+	}
+
+	if(master_button_down && millis() >= master_button_down)
+	{
+		Serial.println("Master button held, toggling master state...");
+		Serial.print("Previous state: ");
+		Serial.println(slave);
+
+		toggle_master();
+		master_button_down = 0;
+	}
+}
+
 static void dispatch_packet(const jack_pack_t *p)
 {
 	if(0 != leave_manual_ms)
@@ -236,45 +324,23 @@ void loop()
 {
 	jack_pack_t buf;
 
-	if(read_button(button_0))
+	if(!read_button(shift_button))
 	{
-		leave_manual_ms = millis() + MANUAL_TIMEOUT;
-		west_on();
-	}
-	else if(0 != leave_manual_ms)
-	{
-		west_off();
-		if(millis() > leave_manual_ms)
+		if(read_button(button_0))
 		{
-			leave_manual_ms = 0;
+			leave_manual_ms = millis() + MANUAL_TIMEOUT;
+			west_on();
 		}
-	}
-
-	if(0 == master_button_down
-	&& read_button(button_2))
-	{
-		Serial.print("Start master toggle... (3 sec)");
-		Serial.println(slave);
-		master_button_down = millis() + MASTER_BUTTON_TIMEOUT;
-	}
-
-	if(!read_button(button_2))
-	{
-		if(master_button_down)
+		else if(0 != leave_manual_ms)
 		{
-			Serial.println("Master button released.");
-			master_button_down = 0;
+			west_off();
+			if(millis() > leave_manual_ms)
+			{
+				leave_manual_ms = 0;
+			}
 		}
-	}
-
-	if(master_button_down && millis() >= master_button_down)
-	{
-		Serial.println("Master button held, toggling master state...");
-		Serial.print("Previous state: ");
-		Serial.println(slave);
-
-		toggle_master();
-		master_button_down = 0;
+	
+		handle_master_button();
 	}
 
 	if(slave)
@@ -294,35 +360,12 @@ void loop()
 			next_ddos_ms = now + DDOS_INTERVAL;
 
 			buf.master = (1 << device_id);
+			buf.activate = 0;
+			buf.deactivate = 0;
 
-			if(read_button(button_3))
+			if(read_button(shift_button))
 			{
-				if(0 == sequence_advance)
-				{
-					sequence_step = 0;
-					sequence_iterations = 0;
-					sequence_delay = beer_random.step_delay;
-					sequence_advance = millis() + sequence_delay;
-				}
-				else
-				{
-					if(sequence_iterations < beer_random.iterations)
-					{
-						buf.activate = beer_random.activations[sequence_step].activate;
-						buf.deactivate = beer_random.activations[sequence_step].deactivate;
-
-						if(millis() > sequence_advance)
-						{
-							if(++sequence_step >= beer_random.num_activations)
-							{
-								sequence_step = 0;
-								sequence_delay += beer_random.step_delay_add;
-								sequence_iterations += 1;
-							}
-							sequence_advance = millis() + sequence_delay;
-						}
-					}
-				}
+				handle_sequences(&buf);
 			}
 			else
 			{
