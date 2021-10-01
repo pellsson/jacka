@@ -270,6 +270,10 @@ static void handle_sequences(jack_pack_t *buf)
 			buf->activate = seq->activations[sequence_step].activate;
 			buf->deactivate = seq->activations[sequence_step].deactivate;
 
+			Serial.print(buf->activate, HEX);
+			Serial.print(", ");
+			Serial.println(buf->deactivate, HEX);
+
 			if(millis() > sequence_advance)
 			{
 				if(++sequence_step >= seq->num_activations)
