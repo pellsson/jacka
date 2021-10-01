@@ -136,14 +136,27 @@ static void set_rgb(int r, int g, int b)
 	old_b = b;
 }
 
+static bool west_is_on = false;
+
 static void west_on(void)
 {
+	if(!west_is_on)
+	{
+		Serial.println("West OFF => ON");
+	}
+
 	set_rgb(255, 0, 0);
 	digitalWrite(led_jacket, HIGH);
+	west_is_on = true;
 }
 
 static void west_off(void)
 {
+	if(west_is_on)
+	{
+		Serial.println("West ON => OFF");
+	}
+
 	if(slave)
 	{
 		set_rgb(0, 255, 0);
@@ -154,6 +167,7 @@ static void west_off(void)
 	}
 
 	digitalWrite(led_jacket, LOW);
+	west_is_on = false;
 }
 
 static void radio_up(void)
