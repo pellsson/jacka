@@ -23,6 +23,8 @@ static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
 
 static int sequence_step = 0;
+static int sequence_iterations = 0;
+static int sequence_delay = 0;
 static unsigned long sequence_advance = 0;
 
 static bool slave = true;
@@ -45,20 +47,32 @@ jack_pack_t;
 
 #define light_one(n) { (1 << n), ~(1 << n) }
 
-typedef struct sequence
+typedef struct activations
 {
 	uint8_t activate;
 	uint8_t deactivate;
 }
+activations_t;
+
+typedef struct sequence
+{
+	int iterations;
+	int step_delay;
+	int step_delay_add;
+
+	uint32_t num_activations;
+	activations_t activations[64];
+}
 sequence_t;
 
-static const sequence_t loop_single[] =
+static const sequence_t beer_random = 
 {
-	light_one(0),
-	light_one(1),
-	light_one(2),
-	//light_one(3),
-	// light_one(5),
+	10, 250, 100, 3,
+	{
+		light_one(0),
+		light_one(1),
+		light_one(2),
+	}
 };
 
 uint8_t compute_crc8(const uint8_t *data, uint32_t len)
@@ -275,20 +289,27 @@ void loop()
 				if(0 == sequence_advance)
 				{
 					sequence_step = 0;
-					sequence_advance = millis() + 50;
+					sequence_iterations = 0;
+					sequence_delay = beer_random.step_delay;
+					sequence_advance = millis() + sequence_delay;
 				}
 				else
 				{
-					buf.activate = loop_single[sequence_step].activate;
-					buf.deactivate = loop_single[sequence_step].deactivate;
-
-					if(millis() > sequence_advance)
+					if(sequence_iterations < beer_random.iterations)
 					{
-						if(++sequence_step >= count_of(loop_single))
+						buf.activate = beer_random.activations[sequence_step].activate;
+						buf.deactivate = beer_random.activations[sequence_step].deactivate;
+
+						if(millis() > sequence_advance)
 						{
-							sequence_step = 0;
+							if(++sequence_step >= beer_random.num_activations)
+							{
+								sequence_step = 0;
+								sequence_delay += beer_random.step_delay_add;
+								sequence_iterations += 1;
+							}
+							sequence_advance = millis() + sequence_delay;
 						}
-						sequence_advance = millis() + 50;
 					}
 				}
 			}
