@@ -240,11 +240,11 @@ static void handle_sequences(jack_pack_t *buf)
 {
 	const sequence_t *seq = NULL;
 
-	if(read_button(button_1))
+	if(read_button(button_0))
 	{
 		seq = &single_person_wave;
 	}
-	else
+	else if(read_button(button_1))
 	{
 		seq = &beer_random;
 	}
@@ -256,7 +256,6 @@ static void handle_sequences(jack_pack_t *buf)
 
 	if(0 == sequence_advance)
 	{
-		Serial.println("I begin seq now.");
 		sequence_step = 0;
 		sequence_iterations = 0;
 		sequence_delay = seq->step_delay;
@@ -266,23 +265,25 @@ static void handle_sequences(jack_pack_t *buf)
 	{
 		if(sequence_iterations < seq->iterations)
 		{
-			Serial.println("Next seq step.. g00g0g0g");
 			buf->activate = seq->activations[sequence_step].activate;
 			buf->deactivate = seq->activations[sequence_step].deactivate;
 
-			Serial.print(buf->activate, HEX);
-			Serial.print(", ");
-			Serial.println(buf->deactivate, HEX);
-
 			if(millis() > sequence_advance)
 			{
+				Serial.print(buf->activate, HEX);
+				Serial.print(", ");
+				Serial.println(buf->deactivate, HEX);
+
 				if(++sequence_step >= seq->num_activations)
 				{
 					sequence_step = 0;
 					sequence_delay += seq->step_delay_add;
 					sequence_iterations += 1;
 				}
+
 				sequence_advance = millis() + sequence_delay;
+				Serial.print("Next step in ms: ");
+				Serial.println(sequence_delay);
 			}
 		}
 	}
