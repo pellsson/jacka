@@ -257,7 +257,8 @@ void loop()
 		Serial.println(slave);
 		master_button_down = millis() + MASTER_BUTTON_TIMEOUT;
 	}
-	else if(!read_button(button_2))
+
+	if(!read_button(button_2))
 	{
 		if(master_button_down)
 		{
