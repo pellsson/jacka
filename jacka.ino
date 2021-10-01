@@ -213,11 +213,14 @@ void loop()
 	if(!master_button
 	&& read_button(button_3))
 	{
+		Serial.print("Toggle master state, old state: ");
+		Serial.println(slave);
 		toggle_master();
 		master_button = true;
 	}
 	else if(!read_button(button_3))
 	{
+		Serial.println("Master button released.");
 		master_button = false;
 	}
 
