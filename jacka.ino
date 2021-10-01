@@ -67,7 +67,7 @@ sequence_t;
 
 static const sequence_t beer_random = 
 {
-	10, 250, 100, 3,
+	20, 50, 25, 3,
 	{
 		light_one(0),
 		light_one(1),
