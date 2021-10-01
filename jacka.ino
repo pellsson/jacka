@@ -14,6 +14,7 @@ static const int button_1 = A2;
 static const int button_2 = A3;
 static const int button_3 = A4;
 
+static const int self_dance = button_0;
 static const int all_dance = button_1;
 static const int master_button = button_2;
 static const int shift_button = button_3;
@@ -329,7 +330,7 @@ void loop()
 
 	if(!read_button(shift_button))
 	{
-		if(read_button(button_0))
+		if(read_button(self_dance))
 		{
 			leave_manual_ms = millis() + MANUAL_TIMEOUT;
 			west_on();
@@ -368,7 +369,7 @@ void loop()
 
 			if(read_button(shift_button))
 			{
-				handle_sequences(&buf);
+				// handle_sequences(&buf);
 			}
 			else
 			{
