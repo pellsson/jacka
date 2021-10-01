@@ -19,9 +19,9 @@ static const int all_dance = button_1;
 static const int master_button = button_2;
 static const int shift_button = button_3;
 
-static const int led_g = 3;
 static const int led_r = 5;
-static const int led_b = 6;
+static const int led_b = 3;
+static const int led_g = 6;
 
 static const int led_jacket = 10;
 static const byte address[6] = "00001";
@@ -385,7 +385,7 @@ void loop()
 
 			if(read_button(shift_button))
 			{
-				// handle_sequences(&buf);
+				handle_sequences(&buf);
 			}
 			else
 			{
