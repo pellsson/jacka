@@ -22,6 +22,7 @@ static const byte address[6] = "00001";
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
 static bool slave = true;
+static bool master_button = false;
 
 static uint8_t device_id = 0;
 
@@ -109,16 +110,28 @@ static void radio_up(void)
 
 static void enter_master(void)
 {
-	radio.stopListening();
 	slave = false;
+	radio.stopListening();
 	west_off();
 }
 
 static void enter_slave(void)
 {
-	set_rgb(0, 255, 0);
+	slave = true;
 	radio.startListening();
 	west_off();
+}
+
+static void toggle_master(void)
+{
+	if(slave)
+	{
+		enter_master();
+	}
+	else
+	{
+		enter_slave();
+	}
 }
 
 static bool read_button(int pin)
@@ -197,9 +210,15 @@ void loop()
 		}
 	}
 
-	if(slave && read_button(button_3))
+	if(!master_button
+	&& read_button(button_3))
 	{
-		enter_master();
+		toggle_master();
+		master_button = true;
+	}
+	else
+	{
+		master_button = false;
 	}
 
 	if(slave)
