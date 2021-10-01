@@ -7,6 +7,8 @@ static RF24 radio(7, 8); // CE, CSN
 static unsigned long MANUAL_TIMEOUT = 10000;
 static unsigned long DDOS_INTERVAL = 5;
 
+static const unsigned int MASTER_BUTTON_TIMEOUT = 3000;
+
 static const int button_0 = A1;
 static const int button_1 = A2;
 static const int button_2 = A3;
@@ -28,7 +30,7 @@ static int sequence_delay = 0;
 static unsigned long sequence_advance = 0;
 
 static bool slave = true;
-static bool master_button = false;
+static unsigned long master_button_down = 0;
 
 static uint8_t device_id = 0;
 
@@ -248,22 +250,29 @@ void loop()
 		}
 	}
 
-	if(!master_button
-	&& read_button(button_3))
+	if(0 == master_button_down
+	&& read_button(button_2))
 	{
-		Serial.print("Toggle master state, old state: ");
+		Serial.print("Start master toggle... (3 sec)");
 		Serial.println(slave);
-		toggle_master();
-		master_button = true;
+		master_button_down = millis() + MASTER_BUTTON_TIMEOUT;
 	}
-	else if(!read_button(button_3))
+	else if(!read_button(button_2))
 	{
-		if(master_button)
+		if(master_button_down)
 		{
 			Serial.println("Master button released.");
-			master_button = false;
-			delay(10);
+			master_button_down = 0;
 		}
+	}
+
+	if(millis() >= master_button_down)
+	{
+		Serial.println("Master button held, toggling master state...");
+		Serial.print("Previous state: ");
+		Serial.println(slave);
+
+		toggle_master();
 	}
 
 	if(slave)
@@ -284,7 +293,7 @@ void loop()
 
 			buf.master = (1 << device_id);
 
-			if(read_button(button_2))
+			if(read_button(button_3))
 			{
 				if(0 == sequence_advance)
 				{
