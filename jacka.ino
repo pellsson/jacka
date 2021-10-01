@@ -113,11 +113,27 @@ uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 	return crc;
 }
 
+static int old_r = -1;
+static int old_g = -1;
+static int old_b = -1;
+
 static void set_rgb(int r, int g, int b)
 {
+	if(r != old_r && g != old_g && b != old_b)
+	{
+		Serial.println("I am changing LED color...");
+		Serial.print(r); Serial.print(", ");
+		Serial.print(g); Serial.print(", ");
+		Serial.println(b);
+	}
+
 	digitalWrite(led_r, r);
 	digitalWrite(led_g, g);
 	digitalWrite(led_b, b);
+
+	old_r = r;
+	old_g = g;
+	old_b = b;
 }
 
 static void west_on(void)
