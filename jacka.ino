@@ -119,7 +119,7 @@ static int old_b = -1;
 
 static void set_rgb(int r, int g, int b)
 {
-	if(r != old_r && g != old_g && b != old_b)
+	if((r != old_r) || (g != old_g) || (b != old_b))
 	{
 		Serial.println("I am changing LED color...");
 		Serial.print(r); Serial.print(", ");
