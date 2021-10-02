@@ -28,10 +28,6 @@ static const byte address[6] = "00001";
 
 static bool west_is_on = false;
 
-static int old_r = -1;
-static int old_g = -1;
-static int old_b = -1;
-
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
 
@@ -172,10 +168,6 @@ static bool set_rgb(int r, int g, int b)
 	digitalWrite(led_g, g);
 	digitalWrite(led_b, b);
 
-	old_r = r;
-	old_g = g;
-	old_b = b;
-
 	return true;
 }
 
@@ -259,14 +251,16 @@ static void radio_up(void)
 		}
 	}
 
+	Serial.println("Chip is happy! Fanfare.");
+
 	set_rgb(255, 0, 0);
-	delay(100);
+	delay(500);
 	set_rgb(0, 255, 0);
-	delay(100);
+	delay(500);
 	set_rgb(0, 0, 255);
-	delay(100);
+	delay(500);
 	set_rgb(255, 255, 255);
-	delay(100);
+	delay(500);
 	set_rgb(0, 0, 0);
 
 	Serial.println("Chip connection established!");
