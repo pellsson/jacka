@@ -79,7 +79,7 @@ sequence_t;
 
 static const sequence_t single_person_wave =
 {
-	20000, 35, 0, NUMBER_OF_DEVICES,
+	20000, 500, 0, NUMBER_OF_DEVICES,
 	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
 };
 
@@ -117,7 +117,7 @@ static const sequence_t *beer_movie[] =
 
 static const sequence_t hyper_wave =
 {
-	2000, 60, 0, NUMBER_OF_DEVICES,
+	2000, 80, 0, NUMBER_OF_DEVICES,
 	{ light_any(0x00), light_any(0x04), light_any(0x0E), light_any(0x1F), light_any(0x0E) }
 };
 
