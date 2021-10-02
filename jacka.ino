@@ -183,21 +183,16 @@ static void west_off(void)
 		Serial.println("West ON => OFF");
 	}
 
-#if 0
 	if(slave)
 	{
-		set_rgb(0, 255, 0);
+		// set_rgb(0, 255, 0);
+		set_rgb(0, 0, 0);
 	}
 	else
 	{
-		set_rgb(0, 0, 255);
+		// set_rgb(0, 0, 255);		
+		set_rgb(0, 0, 0);
 	}
-#endif
-
-	digitalWrite(led_r, 0);
-	digitalWrite(led_g, 0);
-	digitalWrite(led_b, 0);
-	led_timeout = 0;
 
 	digitalWrite(led_jacket, LOW);
 	west_is_on = false;
