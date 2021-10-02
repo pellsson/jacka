@@ -8,7 +8,6 @@ static unsigned long MANUAL_TIMEOUT = 10000;
 static unsigned long DDOS_INTERVAL = 5;
 
 static const unsigned int MASTER_BUTTON_TIMEOUT = 3000;
-static const unsigned long LED_TIMEOUT = 1000;
 
 static const int button_0 = A1;
 static const int button_1 = A2;
@@ -30,8 +29,6 @@ static const byte address[6] = "00001";
 static int old_r = -1;
 static int old_g = -1;
 static int old_b = -1;
-
-static unsigned long led_timeout = 0;
 
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
@@ -101,7 +98,7 @@ static const sequence_t beer_random =
 	}
 };
 
-uint8_t compute_crc8(const uint8_t *data, uint32_t len)
+static uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 {
 	byte crc = 0x00;
 	for(uint32_t i = 0; i < len; ++i)
@@ -122,6 +119,11 @@ uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 	return crc;
 }
 
+static bool read_button(int pin)
+{
+	return (LOW == digitalRead(pin));
+}
+
 static bool set_rgb(int r, int g, int b)
 {
 	if((r == old_r) && (g == old_g) && (b == old_b))
@@ -130,8 +132,7 @@ static bool set_rgb(int r, int g, int b)
 	}
 
 	Serial.println("Changing LED color (this resets timeout)");
-	led_timeout = millis() + LED_TIMEOUT;
-
+ 
 	digitalWrite(led_r, r);
 	digitalWrite(led_g, g);
 	digitalWrite(led_b, b);
@@ -145,20 +146,16 @@ static bool set_rgb(int r, int g, int b)
 
 static void update_rgb(void)
 {
-	if(0 == led_timeout)
+	if(!read_button(button_0)
+	&& !read_button(button_1)
+	&& !read_button(button_2)
+	&& !read_button(button_3))
 	{
-		return;
-	}
-
-	if(millis() >= led_timeout)
-	{
-		Serial.println("LED timeout expired. Lights off.");
+		Serial.println("No button are held. Lights off.");
 
 		digitalWrite(led_r, 0);
 		digitalWrite(led_g, 0);
 		digitalWrite(led_b, 0);
-
-		led_timeout = 0;
 	}
 }
 
@@ -183,18 +180,23 @@ static void west_off(void)
 		Serial.println("West ON => OFF");
 	}
 
+	set_rgb(0, 0, 0);
+	digitalWrite(led_jacket, LOW);
+	west_is_on = false;
+}
+
+static void led_show_master()
+{
 	if(slave)
 	{
 		set_rgb(0, 255, 0);
 	}
 	else
 	{
-		set_rgb(0, 0, 255);		
+		set_rgb(0, 0, 255);
 	}
-
-	digitalWrite(led_jacket, LOW);
-	west_is_on = false;
 }
+
 
 static void radio_up(void)
 {
@@ -222,14 +224,12 @@ static void enter_master(void)
 {
 	slave = false;
 	radio.stopListening();
-	west_off();
 }
 
 static void enter_slave(void)
 {
 	slave = true;
 	radio.startListening();
-	west_off();
 }
 
 static void toggle_master(void)
@@ -242,11 +242,6 @@ static void toggle_master(void)
 	{
 		enter_slave();
 	}
-}
-
-static bool read_button(int pin)
-{
-	return (LOW == digitalRead(pin));
 }
 
 void setup()
@@ -338,7 +333,10 @@ static void handle_master_button(void)
 			Serial.println("Master button released.");
 			master_button_down = 0;
 		}
+		return;
 	}
+
+	led_show_master();
 
 	if(master_button_down
 	&& millis() >= master_button_down)
