@@ -330,6 +330,25 @@ static void handle_sequences(jack_pack_t *buf)
 
 	if(NULL == seq)
 	{
+		if(beer_movie == mov)
+		{
+			if(millis() >= sequence_advance)
+			{
+				sequence_advance = millis() + 100;
+				if(sequence_step & 1)
+				{
+					buf->activate = 1 << (num_activations - 1);
+					buf->deactivate = ~(1 << (num_activations - 1));
+				}
+				else
+				{
+					buf->activate = 0x00;
+					buf->deactivate = 0xFF;
+				}
+				++sequence_step;
+			}
+		}
+
 		return;
 	}
 
