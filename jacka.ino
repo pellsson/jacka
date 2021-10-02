@@ -128,11 +128,6 @@ static bool read_button(int pin)
 
 static bool set_rgb(int r, int g, int b)
 {
-	if((r == old_r) && (g == old_g) && (b == old_b))
-	{
-		return false;
-	}
-
 	Serial.println("Changing LED color (this resets timeout)");
  
 	digitalWrite(led_r, r);
