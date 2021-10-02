@@ -339,6 +339,7 @@ static void handle_master_button(void)
 		return;
 	}
 
+	Serial.println("Showing master/slave state LED");
 	led_show_master();
 
 	if(master_button_down
