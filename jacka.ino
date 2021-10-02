@@ -185,13 +185,11 @@ static void west_off(void)
 
 	if(slave)
 	{
-		// set_rgb(0, 255, 0);
-		set_rgb(0, 0, 0);
+		set_rgb(0, 255, 0);
 	}
 	else
 	{
-		// set_rgb(0, 0, 255);		
-		set_rgb(0, 0, 0);
+		set_rgb(0, 0, 255);		
 	}
 
 	digitalWrite(led_jacket, LOW);
