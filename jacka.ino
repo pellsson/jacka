@@ -26,6 +26,8 @@ static const int led_g = 6;
 static const int led_jacket = 10;
 static const byte address[6] = "00001";
 
+static bool west_is_on = false;
+
 static int old_r = -1;
 static int old_g = -1;
 static int old_b = -1;
@@ -151,15 +153,28 @@ static void update_rgb(void)
 	&& !read_button(button_2)
 	&& !read_button(button_3))
 	{
-		Serial.println("No button are held. Lights off.");
+		if(west_is_on)
+		{
+			Serial.println("No button are held. Lights off.");
 
-		digitalWrite(led_r, 0);
-		digitalWrite(led_g, 0);
-		digitalWrite(led_b, 0);
+			digitalWrite(led_r, 0);
+			digitalWrite(led_g, 0);
+			digitalWrite(led_b, 0);
+		}
 	}
 }
 
-static bool west_is_on = false;
+static void led_show_master()
+{
+	if(slave)
+	{
+		set_rgb(0, 255, 0);
+	}
+	else
+	{
+		set_rgb(0, 0, 255);
+	}
+}
 
 static void west_on(void)
 {
@@ -168,7 +183,8 @@ static void west_on(void)
 		Serial.println("West OFF => ON");
 	}
 
-	set_rgb(255, 0, 0);
+	led_show_master();
+
 	digitalWrite(led_jacket, HIGH);
 	west_is_on = true;
 }
@@ -184,19 +200,6 @@ static void west_off(void)
 	digitalWrite(led_jacket, LOW);
 	west_is_on = false;
 }
-
-static void led_show_master()
-{
-	if(slave)
-	{
-		set_rgb(0, 255, 0);
-	}
-	else
-	{
-		set_rgb(0, 0, 255);
-	}
-}
-
 
 static void radio_up(void)
 {
