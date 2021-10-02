@@ -155,8 +155,6 @@ static void update_rgb(void)
 	{
 		if(!west_is_on)
 		{
-			Serial.println("No button are held. Lights off.");
-
 			digitalWrite(led_r, 0);
 			digitalWrite(led_g, 0);
 			digitalWrite(led_b, 0);
