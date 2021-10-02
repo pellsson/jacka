@@ -6,7 +6,7 @@ static RF24 radio(7, 8); // CE, CSN
 
 static unsigned long MANUAL_TIMEOUT = 10000;
 static unsigned long DDOS_INTERVAL = 5;
-
+static const uint32_t NUMBER_OF_DEVICES = 5;
 static const unsigned int MASTER_BUTTON_TIMEOUT = 3000;
 
 static const int button_0 = A1;
@@ -35,7 +35,9 @@ static int old_b = -1;
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
 
+static int movie_step = 0;
 static int sequence_step = 0;
+static int num_activations = 0;
 static int sequence_iterations = 0;
 static int sequence_delay = 0;
 static unsigned long sequence_advance = 0;
@@ -58,6 +60,7 @@ jack_pack_t;
 
 #define count_of(x) (sizeof(x) / sizeof(x[0]))
 
+#define light_any(v) { (uint8_t)v, (uint8_t)~(v) }
 #define light_one(n) { (1 << n), ~(1 << n) }
 
 typedef struct activations
@@ -80,25 +83,62 @@ sequence_t;
 
 static const sequence_t single_person_wave =
 {
-	20000, 100, 0, 4,
-	{
-		light_one(0),
-		light_one(1),
-		light_one(2),
-		light_one(3),
-	}
+	20000, 35, 0, NUMBER_OF_DEVICES,
+	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
 };
 
-static const sequence_t beer_random = 
+static const sequence_t *single_wave_movie[] =
 {
-	20, 50, 25, 4,
-	{
-		light_one(0),
-		light_one(1),
-		light_one(2),
-		light_one(3),
-	}
+	&single_person_wave,
+	NULL
 };
+
+static const sequence_t beer_random_0 = 
+{
+	7, 35, 0, NUMBER_OF_DEVICES,
+	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
+};
+
+static const sequence_t beer_random_1 = 
+{
+	7, 35, 50, NUMBER_OF_DEVICES,
+	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
+};
+
+static const sequence_t beer_random_select =
+{
+	1, 1500, 300, 0x80,
+	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
+};
+
+static const sequence_t *beer_movie[] =
+{
+	&beer_random_0,
+	&beer_random_1,
+	&beer_random_select,
+	NULL
+};
+
+static const sequence_t hyper_wave =
+{
+	2000, 60, 0, NUMBER_OF_DEVICES,
+	{ light_any(0x00), light_any(0x04), light_any(0x0E), light_any(0x1F), light_any(0x0E) }
+};
+
+static const sequence_t *hyper_wave_movie[] =
+{
+	&hyper_wave
+};
+
+static int get_activation_steps(const sequence_t *seq)
+{
+	if(seq->num_activations & 0x80)
+	{
+		int r = random(NUMBER_OF_DEVICES + 1);
+		return r;
+	}
+	return seq->num_activations;
+}
 
 static uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 {
@@ -128,8 +168,6 @@ static bool read_button(int pin)
 
 static bool set_rgb(int r, int g, int b)
 {
-	Serial.println("Changing LED color (this resets timeout)");
- 
 	digitalWrite(led_r, r);
 	digitalWrite(led_g, g);
 	digitalWrite(led_b, b);
@@ -161,7 +199,7 @@ static void led_show_master()
 {
 	if(slave)
 	{
-		set_rgb(0, 255, 0);
+		set_rgb(255, 0, 0);
 	}
 	else
 	{
@@ -268,17 +306,29 @@ void setup()
 
 static void handle_sequences(jack_pack_t *buf)
 {
-	const sequence_t *seq = NULL;
+	const sequence_t **mov;
+	const sequence_t *seq;
 
 	if(read_button(button_0))
 	{
-		seq = &single_person_wave;
+		mov = beer_movie;
 	}
 	else if(read_button(button_1))
 	{
-		seq = &beer_random;
+		mov = single_wave_movie;
+	}
+	else if(read_button(button_2))
+	{
+		mov = hyper_wave_movie;
 	}
 	else
+	{
+		return;
+	}
+
+	seq = mov[movie_step];
+
+	if(NULL == seq)
 	{
 		return;
 	}
@@ -286,29 +336,35 @@ static void handle_sequences(jack_pack_t *buf)
 	if(0 == sequence_advance)
 	{
 		sequence_step = 0;
+		num_activations = get_activation_steps(seq);
 		sequence_iterations = 0;
 		sequence_delay = seq->step_delay;
 		sequence_advance = millis() + sequence_delay;
+
+		return;
+	}
+
+	if(sequence_iterations < seq->iterations)
+	{
+		buf->activate = seq->activations[sequence_step].activate;
+		buf->deactivate = seq->activations[sequence_step].deactivate;
+
+		if(millis() > sequence_advance)
+		{
+			if(++sequence_step >= num_activations)
+			{
+				sequence_step = 0;
+				sequence_delay += seq->step_delay_add;
+				sequence_iterations += 1;
+			}
+
+			sequence_advance = millis() + sequence_delay;
+		}
 	}
 	else
 	{
-		if(sequence_iterations < seq->iterations)
-		{
-			buf->activate = seq->activations[sequence_step].activate;
-			buf->deactivate = seq->activations[sequence_step].deactivate;
-
-			if(millis() > sequence_advance)
-			{
-				if(++sequence_step >= seq->num_activations)
-				{
-					sequence_step = 0;
-					sequence_delay += seq->step_delay_add;
-					sequence_iterations += 1;
-				}
-
-				sequence_advance = millis() + sequence_delay;
-			}
-		}
+		++movie_step;
+		sequence_advance = 0;
 	}
 }
 
@@ -382,6 +438,8 @@ void loop()
 
 	if(!read_button(shift_button))
 	{
+		movie_step = 0;
+
 		if(read_button(self_dance))
 		{
 			leave_manual_ms = millis() + MANUAL_TIMEOUT;
