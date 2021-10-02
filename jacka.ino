@@ -432,7 +432,7 @@ static void handle_master_button(void)
 
 static void dispatch_packet(const jack_pack_t *p)
 {
-	if(0 != leave_manual_ms)
+	if(slave && (0 != leave_manual_ms))
 	{
 		Serial.println("Received packet, but I am manual right now...");
 		return;
