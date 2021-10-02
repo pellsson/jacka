@@ -8,6 +8,7 @@ static unsigned long MANUAL_TIMEOUT = 10000;
 static unsigned long DDOS_INTERVAL = 5;
 
 static const unsigned int MASTER_BUTTON_TIMEOUT = 3000;
+static const unsigned long LED_TIMEOUT = 1000;
 
 static const int button_0 = A1;
 static const int button_1 = A2;
@@ -25,6 +26,12 @@ static const int led_g = 6;
 
 static const int led_jacket = 10;
 static const byte address[6] = "00001";
+
+static int old_r = -1;
+static int old_g = -1;
+static int old_b = -1;
+
+static unsigned long led_timeout = 0;
 
 static unsigned long next_ddos_ms = 0;
 static unsigned long leave_manual_ms = 0;
@@ -115,18 +122,11 @@ uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 	return crc;
 }
 
-static int old_r = -1;
-static int old_g = -1;
-static int old_b = -1;
-
-static void set_rgb(int r, int g, int b)
+static bool force_set_rgb(int r, int g, int b)
 {
-	if((r != old_r) || (g != old_g) || (b != old_b))
+	if((r == old_r) && (g == old_g) && (b == old_b))
 	{
-		Serial.println("I am changing LED color...");
-		Serial.print(r); Serial.print(", ");
-		Serial.print(g); Serial.print(", ");
-		Serial.println(b);
+		return false;
 	}
 
 	digitalWrite(led_r, r);
@@ -136,6 +136,29 @@ static void set_rgb(int r, int g, int b)
 	old_r = r;
 	old_g = g;
 	old_b = b;
+
+	return true;
+}
+
+static void set_rgb(int r, int g, int b)
+{
+	if(force_set_rgb(r, g, b))
+	{
+		led_timeout = millis() + LED_TIMEOUT;
+	}
+}
+
+static void update_rgb(void)
+{
+	if(0 == led_timeout)
+	{
+		return;
+	}
+
+	if(millis() >= led_timeout)
+	{
+		force_set_rgb(0, 0, 0);
+	}
 }
 
 static bool west_is_on = false;
@@ -358,6 +381,8 @@ static void dispatch_packet(const jack_pack_t *p)
 void loop()
 {
 	jack_pack_t buf;
+
+	update_rgb();
 
 	if(!read_button(shift_button))
 	{
