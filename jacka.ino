@@ -259,6 +259,16 @@ static void radio_up(void)
 		}
 	}
 
+	set_rgb(255, 0, 0);
+	delay(100);
+	set_rgb(0, 255, 0);
+	delay(100);
+	set_rgb(0, 0, 255);
+	delay(100);
+	set_rgb(255, 255, 255);
+	delay(100);
+	set_rgb(0, 0, 0);
+
 	Serial.println("Chip connection established!");
 }
 
@@ -297,7 +307,8 @@ void setup()
 	pinMode(led_g, OUTPUT);
 	pinMode(led_b, OUTPUT);
 
-	// pinMode(10, OUTPUT); // SJUUUUUKT VIKTIG TA INTE BORT DEN H'R!!!
+	pinMode(10, OUTPUT); // SJUUUUUKT VIKTIG TA INTE BORT DEN H'R!!!
+
 	pinMode(button_0, INPUT_PULLUP);
 	pinMode(button_1, INPUT_PULLUP);
 	pinMode(button_2, INPUT_PULLUP);
@@ -467,6 +478,16 @@ static void dispatch_packet(const jack_pack_t *p)
 void loop()
 {
 	jack_pack_t buf;
+
+	while(!radio.isChipConnected())
+	{
+		Serial.println("Connection with RF24 lost...");
+
+		set_rgb(0xFF, 0xA0, 0);
+		delay(50);
+		set_rgb(0, 0, 0);
+		delay(50);
+	}
 
 	update_rgb();
 
