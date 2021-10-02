@@ -122,12 +122,15 @@ uint8_t compute_crc8(const uint8_t *data, uint32_t len)
 	return crc;
 }
 
-static bool force_set_rgb(int r, int g, int b)
+static bool set_rgb(int r, int g, int b)
 {
 	if((r == old_r) && (g == old_g) && (b == old_b))
 	{
 		return false;
 	}
+
+	Serial.println("Changing LED color (this resets timeout)");
+	led_timeout = millis() + LED_TIMEOUT;
 
 	digitalWrite(led_r, r);
 	digitalWrite(led_g, g);
@@ -140,14 +143,6 @@ static bool force_set_rgb(int r, int g, int b)
 	return true;
 }
 
-static void set_rgb(int r, int g, int b)
-{
-	if(force_set_rgb(r, g, b))
-	{
-		led_timeout = millis() + LED_TIMEOUT;
-	}
-}
-
 static void update_rgb(void)
 {
 	if(0 == led_timeout)
@@ -157,7 +152,12 @@ static void update_rgb(void)
 
 	if(millis() >= led_timeout)
 	{
-		force_set_rgb(0, 0, 0);
+		Serial.println("LED timeout expired. Lights off.");
+
+		digitalWrite(led_r, 0);
+		digitalWrite(led_g, 0);
+		digitalWrite(led_b, 0);
+
 		led_timeout = 0;
 	}
 }
