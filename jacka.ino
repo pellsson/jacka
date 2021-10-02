@@ -240,7 +240,16 @@ static void radio_up(void)
 
 	radio.openWritingPipe(address);
 	radio.openReadingPipe(0, address);
-	
+	radio.setPayloadSize(sizeof(jack_pack_t));
+
+	Serial.print("PA before we set it: ");
+	Serial.println(radio.getPALevel());
+
+	radio.setPALevel(RF24_PA_MAX);
+
+	Serial.print("PA after we set it: ");
+	Serial.println(radio.getPALevel());
+
 	Serial.println("Initializaing chip...!");
 
 	for(;;)
@@ -281,8 +290,7 @@ static void toggle_master(void)
 void setup()
 {
 	int seed;
-	device_id = EEPROM.read(0);
-	
+	device_id = EEPROM.read(0);	
 
 	pinMode(led_jacket, OUTPUT);
 
