@@ -79,7 +79,7 @@ sequence_t;
 
 static const sequence_t single_person_wave =
 {
-	20000, 500, 0, NUMBER_OF_DEVICES,
+	20000, 250, 0, NUMBER_OF_DEVICES,
 	{ light_one(0), light_one(1), light_one(2), light_one(3), light_one(4) }
 };
 
