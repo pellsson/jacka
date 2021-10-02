@@ -280,7 +280,9 @@ static void toggle_master(void)
 
 void setup()
 {
+	int seed;
 	device_id = EEPROM.read(0);
+	
 
 	pinMode(led_jacket, OUTPUT);
 
@@ -295,6 +297,12 @@ void setup()
 	pinMode(button_3, INPUT_PULLUP);
 
 	Serial.begin(115200);
+
+	seed = analogRead(A0);
+	Serial.print("Seed: ");
+	Serial.println(seed);
+
+	randomSeed(seed);
 
 	Serial.print("Device ID: ");
 	Serial.println(device_id);
