@@ -153,7 +153,7 @@ static void update_rgb(void)
 	&& !read_button(button_2)
 	&& !read_button(button_3))
 	{
-		if(west_is_on)
+		if(!west_is_on)
 		{
 			Serial.println("No button are held. Lights off.");
 
