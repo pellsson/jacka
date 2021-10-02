@@ -478,9 +478,9 @@ void loop()
 		Serial.println("Connection with RF24 lost...");
 
 		set_rgb(0xFF, 0xA0, 0);
-		delay(50);
+		delay(150);
 		set_rgb(0, 0, 0);
-		delay(50);
+		delay(150);
 	}
 
 	update_rgb();
