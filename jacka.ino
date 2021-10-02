@@ -158,6 +158,7 @@ static void update_rgb(void)
 	if(millis() >= led_timeout)
 	{
 		force_set_rgb(0, 0, 0);
+		led_timeout = 0;
 	}
 }
 
