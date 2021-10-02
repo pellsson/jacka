@@ -240,7 +240,6 @@ static void radio_up(void)
 
 	radio.openWritingPipe(address);
 	radio.openReadingPipe(0, address);
-	radio.setPayloadSize(sizeof(jack_pack_t));
 
 	Serial.print("PA before we set it: ");
 	Serial.println(radio.getPALevel());
